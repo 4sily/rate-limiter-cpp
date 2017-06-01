@@ -8,7 +8,7 @@ auto TestWithPeakLoadInTheBeginning(int maxAllowedRps)
 	const auto startTime = std::chrono::steady_clock::now();
 	int sentRequestsCount = 0;
 
-	Limiter limiter(maxAllowedRps, std::chrono::milliseconds(10));
+	Limiter limiter(maxAllowedRps, 100);
 	for (; sentRequestsCount < maxAllowedRps; ++sentRequestsCount)
 	{
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
