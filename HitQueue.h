@@ -1,6 +1,7 @@
 #pragma once
 
-#include <cassert>
+#include "Contract.h"
+
 #include <mutex>
 #include <numeric>
 #include <vector>
@@ -21,7 +22,7 @@ public:
 		currentSlot_ = NextIndex(currentSlot_);
 		activeHitsSum_ -= hitsPerTimeSlot_.at(startSlot_);
 		startSlot_ = NextIndex(startSlot_);
-		assert(CalculateSum(startSlot_, currentSlot_) == activeHitsSum_);
+		CONTRACT_EXPECT(CalculateSum(startSlot_, currentSlot_) == activeHitsSum_);
 	}
 
 	void AddHit()

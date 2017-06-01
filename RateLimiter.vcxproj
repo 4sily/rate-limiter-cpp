@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Contract.h" />
     <ClInclude Include="HitQueue.h" />
     <ClInclude Include="Limiter.h" />
     <ClInclude Include="Testing.h" />
