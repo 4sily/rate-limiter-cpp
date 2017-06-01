@@ -1,6 +1,9 @@
 #pragma once
 
-#include <deque>
+#include "Tick.h"
+
+#include <chrono>
+#include <list>
 
 struct HttpResult
 {
@@ -18,12 +21,20 @@ struct HttpResult
 class Limiter
 {
 public:
-	explicit Limiter(int maxRequestCount, int numSlots)
-		: maxRequestCount_(maxRequestCount)
-		, numSlots_(numSlots)
-	{}
+	Limiter(int maxRequestCount, std::chrono::milliseconds slotDuration)
+		: tick_(slotDuration, [this] { OnTimeSlotBoundary(); })	// note that callbacks may start coming right after this
+		, requestsPerTimeSlot_({0})
+		, activeRequestCount_(0)
+		, maxRequestCount_(maxRequestCount)
+	{
+	}
 
-	HttpResult ValidateRequest()
+	~Limiter()
+	{
+		tick_.Deactivate();	// lifecycle issues are still possible, see Tick::Loop()
+	}
+
+	HttpResult::Code ValidateRequest()
 	{
 		if (activeRequestCount_ >= maxRequestCount_)
 		{
@@ -42,8 +53,8 @@ private:
 		requestsPerTimeSlot_.pop_front();
 	}
 
-	std::deque<int> requestsPerTimeSlot_;
+	Tick tick_;
+	std::list<int> requestsPerTimeSlot_; // bad idea; would be better to use circular queue
 	int activeRequestCount_;
 	const int maxRequestCount_;
-	const int numSlots_;
 };
