@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Limiter.h" />
+    <ClInclude Include="Testing.h" />
     <ClInclude Include="Tick.h" />
   </ItemGroup>
   <ItemGroup>
