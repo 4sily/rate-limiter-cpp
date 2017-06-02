@@ -8,15 +8,23 @@ auto TestWithPeakLoadInTheBeginning(int maxAllowedRps)
 	const auto startTime = std::chrono::steady_clock::now();
 	int sentRequestsCount = 0;
 
-	Limiter limiter(maxAllowedRps, 100);
+	Limiter limiter(maxAllowedRps, 10000);
 	for (; sentRequestsCount < maxAllowedRps; ++sentRequestsCount)
 	{
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
 	}
-	if (std::chrono::steady_clock::now() < startTime + std::chrono::seconds())
+	auto expectedEndResult = std::chrono::steady_clock::now() < startTime + std::chrono::milliseconds(500)
+		? HttpResult::Code::Ok
+		: HttpResult::Code::TooManyRequests;
+
+	while (std::chrono::steady_clock::now() < startTime + std::chrono::seconds(1))
 	{
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
 	}
+	ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
+
+	std::this_thread::sleep_until(startTime + std::chrono::milliseconds(1500));
+	ASSERT_EQUAL(limiter.ValidateRequest(), expectedEndResult);
 }
 
 namespace LimiterSpecs
