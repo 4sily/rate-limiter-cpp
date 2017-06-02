@@ -53,10 +53,10 @@ private:
 		return startIndex < currentIndex
 			? std::accumulate(b + startIndex,
 							  b + currentIndex + 1,
-							  1)
+							  0)
 			: std::accumulate(b + startIndex,
 							  hitsPerTimeSlot_.end(),
-							  1) + std::accumulate(b, b + currentIndex + 1, 1);
+							  1) + std::accumulate(b, b + currentIndex + 1, 0);
 	}
 
 	std::vector<int> hitsPerTimeSlot_;
