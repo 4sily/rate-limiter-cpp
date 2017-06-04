@@ -18,8 +18,8 @@ public:
 	explicit HitQueue(int numTimeSlots)
 		: hitsPerTimeSlot_(2 * numTimeSlots)
 		, activeHitsSum_(0)
-		, startSlot_(0)
-		, currentSlot_(numTimeSlots - 1)
+		, windowBegin_(0)
+		, windowEnd_(numTimeSlots - 1)
 		, log_(logFileName().c_str())
 		, detailedLog_((logFileName() + "detailed").c_str())
 	{
@@ -41,9 +41,10 @@ public:
 	void NextTimeSlot()
 	{
 		std::lock_guard<std::mutex> l(mutex_);
-		currentSlot_ = NextIndex(currentSlot_);
-		activeHitsSum_ -= hitsPerTimeSlot_.at(startSlot_);
-		startSlot_ = NextIndex(startSlot_);
+		windowEnd_ = NextIndex(windowEnd_);
+		activeHitsSum_ -= hitsPerTimeSlot_.at(windowBegin_);
+		windowBegin_ = NextIndex(windowBegin_);
+
 
 		CheckContract();
 	}
@@ -78,7 +79,7 @@ public:
 	void AddHit()
 	{
 		std::lock_guard<std::mutex> l(mutex_);
-		hitsPerTimeSlot_.at(currentSlot_)++;
+		hitsPerTimeSlot_.at(windowEnd_)++;
 		activeHitsSum_++;
 	}
 
@@ -115,14 +116,14 @@ private:
 							  0)
 			: std::accumulate(b + startIndex,
 							  hitsPerTimeSlot_.end(),
-							  1) + std::accumulate(b, b + currentIndex + 1, 0);
+							  0) + std::accumulate(b, b + currentIndex + 1, 0);
 	}
 
 	std::vector<int> hitsPerTimeSlot_;
 	mutable std::mutex mutex_;
 	int activeHitsSum_;
-	int startSlot_;
-	int currentSlot_;
+	int windowBegin_;
+	int windowEnd_;
 	std::ofstream log_;
 	std::ofstream detailedLog_;
 };
