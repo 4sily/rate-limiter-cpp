@@ -28,7 +28,7 @@ private:
 		{
 			for (auto start = std::chrono::steady_clock::now(), now = start;
 				 now < start + timeBetweenTicks_;
-				 now = std::chrono::high_resolution_clock::now());
+				 now = std::chrono::high_resolution_clock::now()) { /* Until next tick */ }
 			onTick_();	// may take significant time!
 		}
 	}
