@@ -26,7 +26,7 @@ public:
 		activeHitsSum_ -= hitsPerTimeSlot_.at(windowBegin_);
 		MoveNext();
 
-		CONTRACT_EXPECT(CalculateSum(windowBegin_, windowEnd_) == activeHitsSum_);
+		CONTRACT_EXPECT(sumOfRange(windowBegin_, windowEnd_) == activeHitsSum_);
 	}
 
 	void AddHit()
@@ -59,7 +59,8 @@ private:
 			: 0;
 	}
 
-	int CalculateSum(int startIndex, int currentIndex) const
+	// Sum of range in the circular buffer.
+	int sumOfRange(int startIndex, int currentIndex) const
 	{
 		const auto b = hitsPerTimeSlot_.begin();
 		return startIndex < currentIndex
