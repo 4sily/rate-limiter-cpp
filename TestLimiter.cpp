@@ -26,7 +26,7 @@ std::string millisecondsSinceStart(std::chrono::time_point<Clock, Duration> time
 static auto TestAllRequestsBelowMaxAreAccepted(int maxAllowedRps)
 {
 	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
-	const auto startTime = std::chrono::steady_clock::now();
+	const auto startTime = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < maxAllowedRps; ++i)
 		if (CurrentTime() < startTime + oneSecond)
 			ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
@@ -35,7 +35,7 @@ static auto TestAllRequestsBelowMaxAreAccepted(int maxAllowedRps)
 static auto TestAllRequestsAboveMaxAreDeclined(int maxAllowedRps)
 {
 	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
-	const auto startTime = std::chrono::steady_clock::now();
+	const auto startTime = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < maxAllowedRps; ++i)
 		if (CurrentTime() < startTime + oneSecond)
 			limiter.ValidateRequest();
