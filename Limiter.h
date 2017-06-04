@@ -21,9 +21,9 @@ struct HttpResult
 class Limiter
 {
 public:
-	Limiter(int maxRequestCount, int timeSlotsInSecond)
+	Limiter(int maxRequestCount, int timeSlotsInSecond, std::chrono::microseconds tickTime)
 		: hitQueue_(timeSlotsInSecond)
-		, tick_(std::chrono::seconds(1) / timeSlotsInSecond, [this] { OnTimeSlotBoundary(); })	// note that callbacks may start coming right after this
+		, tick_(tickTime, [this] { OnTimeSlotBoundary(); })	// note that callbacks may start coming right after this
 		, maxRequestCount_(maxRequestCount)
 	{
 	}
