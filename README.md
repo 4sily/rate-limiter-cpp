@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # Simple rate limiter
 
 This repository contains a C++ implementation of a very primitive rate limiter.
