@@ -8,7 +8,7 @@
 class Tick
 {
 public:
-	Tick(std::chrono::milliseconds timeBetweenTicks,
+	Tick(std::chrono::microseconds timeBetweenTicks,
 		 std::function<void()>&& onTick)
 		: timeBetweenTicks_(timeBetweenTicks)
 		, onTick_(onTick)
