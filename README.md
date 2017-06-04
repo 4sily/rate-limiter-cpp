@@ -2,7 +2,7 @@
 
 This repository contains a C++ implementation of a very primitive rate limiter.
 
-#Dependencies
+# Dependencies
 
 Only Standard C++ library. No boost or any third parties.
 The code does not depend on any platform specifics, but was developed and tested only with MSVC on Windows.
