@@ -91,6 +91,18 @@ static auto TestWithPeakLoadInTheBeginning_SingleIteration(int maxAllowedRps)
 	ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
 }
 
+
+static auto TestWithPeakLoadInTheBeginning_MultipleIterations(int maxAllowedRps, int iterations)
+{
+	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
+
+	for (int i = 0; i < iterations; ++i)
+	{
+		const auto timeStamps = TestWithPeakLoadInTheBeginning(limiter);
+		std::this_thread::sleep_until(timeStamps.lastAcceptedRequest + oneSecond);
+	}
+}
+
 static auto TestWithEvenLoad(int maxAllowedRps)
 {
 	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
