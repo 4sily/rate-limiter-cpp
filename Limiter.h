@@ -43,6 +43,8 @@ public:
 		return HttpResult::Code::Ok;
 	}
 
+	int maxRPS() const { return maxRequestCount_; }
+
 private:
 	void OnTimeSlotBoundary()
 	{
