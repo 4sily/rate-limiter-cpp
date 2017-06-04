@@ -16,7 +16,7 @@ class HitQueue
 {
 public:
 	explicit HitQueue(int numTimeSlots)
-		: hitsPerTimeSlot_(2 * numTimeSlots)
+		: hitsPerTimeSlot_(numTimeSlots)
 		, activeHitsSum_(0)
 		, windowBegin_(0)
 		, windowEnd_(numTimeSlots - 1)
