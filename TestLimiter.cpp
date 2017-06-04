@@ -50,7 +50,7 @@ struct TimeStamps
     const std::chrono::time_point<std::chrono::high_resolution_clock> lastAcceptedRequest;
 };
 
-static auto TestWithPeakLoadInTheBeginning(Limiter& limiter)
+static auto TestWithPeakLoadAtStart(Limiter& limiter)
 {
     // Accepting the requests until we hit the limit.
     const auto firstAcceptedRequestTime = CurrentTime();
@@ -77,11 +77,11 @@ static auto TestWithPeakLoadInTheBeginning(Limiter& limiter)
     return TimeStamps{ firstAcceptedRequestTime, lastAcceptedRequestTime };
 }
 
-static auto TestWithPeakLoadInTheBeginning_SingleIteration(int maxAllowedRps)
+static auto TestWithPeakLoadAtStart_SingleIteration(int maxAllowedRps)
 {
     Limiter limiter(maxAllowedRps, 100);
 
-    const auto timeStamps = TestWithPeakLoadInTheBeginning(limiter);
+    const auto timeStamps = TestWithPeakLoadAtStart(limiter);
 
     // Herewith we ensure that NOT MORE than maxAllowedRps requests are allowed per second.
     // It is possible that the limiter will allow a bit LESS, though, hence this "delta" allowance
@@ -92,13 +92,13 @@ static auto TestWithPeakLoadInTheBeginning_SingleIteration(int maxAllowedRps)
 }
 
 
-static auto TestWithPeakLoadInTheBeginning_MultipleIterations(int maxAllowedRps, int iterations)
+static auto TestWithPeakLoadAtStart_MultipleIterations(int maxAllowedRps, int iterations)
 {
     Limiter limiter(maxAllowedRps, 100);
 
     for (int i = 0; i < iterations; ++i)
     {
-        const auto timeStamps = TestWithPeakLoadInTheBeginning(limiter);
+        const auto timeStamps = TestWithPeakLoadAtStart(limiter);
         std::this_thread::sleep_until(timeStamps.lastAcceptedRequest + oneSecond);
     }
 }
@@ -178,8 +178,8 @@ int main()
     {
         TestAllRequestsBelowMaxAreAccepted(LimiterSpecs::maxRPS);
         TestAllRequestsAboveMaxAreDeclined(LimiterSpecs::maxRPS);
-        TestWithPeakLoadInTheBeginning_SingleIteration(LimiterSpecs::maxRPS);
-        //TestWithPeakLoadInTheBeginning_MultipleIterations(LimiterSpecs::maxRPS, 10);
+        TestWithPeakLoadAtStart_SingleIteration(LimiterSpecs::maxRPS);
+        //TestWithPeakLoadAtStart_MultipleIterations(LimiterSpecs::maxRPS, 10);
         TestWithAdjacentPeaks(LimiterSpecs::maxRPS);
         TestWithEvenLoad(LimiterSpecs::maxRPS);
         std::cout << "All Tests passed successfully\n";
