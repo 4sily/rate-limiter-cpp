@@ -19,8 +19,6 @@ public:
 
     void Deactivate() { active_ = false; workerThread_.join(); }
 
-    bool IsActive() const { return active_; }
-
 private:
     void Loop() const
     {
