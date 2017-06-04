@@ -22,7 +22,7 @@ public:
 	bool IsActive() const { return active_; }
 
 private:
-	void Loop()
+	void Loop() const
 	{
 		while (active_)
 		{
