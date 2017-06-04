@@ -44,34 +44,50 @@ static auto TestAllRequestsAboveMaxAreDeclined(int maxAllowedRps)
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
 }
 
-static auto TestWithPeakLoadInTheBeginning(int maxAllowedRps)
+struct TimeStamps
 {
-	const auto startTime = CurrentTime();
+	const std::chrono::time_point<std::chrono::high_resolution_clock> firstAcceptedRequest;
+	const std::chrono::time_point<std::chrono::high_resolution_clock> lastAcceptedRequest;
+};
 
-	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
-
+static auto TestWithPeakLoadInTheBeginning(Limiter& limiter)
+{
 	// Accepting the requests until we hit the limit.
-	const auto firstAcceptedRequest = CurrentTime();
-	for (int i = 0; i < maxAllowedRps; ++i)
+	const auto firstAcceptedRequestTime = CurrentTime();
+	for (int i = 0; i < limiter.maxRPS(); ++i)
 	{
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
 	}
+	const auto lastAcceptedRequestTime = CurrentTime();
 
 	// Not accepting more requests within current second.
-	while (CurrentTime() < startTime + oneSecond)
+	while (CurrentTime() < firstAcceptedRequestTime + oneSecond)
 	{
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
 	}
 
 	// Still not accepting requests if less than one second has elapsed after the first request.
-	if (CurrentTime() < firstAcceptedRequest + oneSecond)
+	if (CurrentTime() < firstAcceptedRequestTime + oneSecond)
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
 
-	std::this_thread::sleep_until(firstAcceptedRequest + std::chrono::milliseconds(900));
-	if (CurrentTime() < firstAcceptedRequest + oneSecond)
+	std::this_thread::sleep_until(firstAcceptedRequestTime + std::chrono::milliseconds(900));
+	if (CurrentTime() < firstAcceptedRequestTime + oneSecond)
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
 
-	std::this_thread::sleep_until(firstAcceptedRequest + oneSecond + std::chrono::milliseconds(42));
+	return TimeStamps{ firstAcceptedRequestTime, lastAcceptedRequestTime };
+}
+
+static auto TestWithPeakLoadInTheBeginning_SingleIteration(int maxAllowedRps)
+{
+	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
+
+	const auto timeStamps = TestWithPeakLoadInTheBeginning(limiter);
+
+	// Herewith we ensure that NOT MORE than maxAllowedRps requests are allowed per second.
+	// It is possible that the limiter will allow a bit LESS, though, hence this "delta" allowance
+	// in the assertion below.
+	constexpr auto delayDueToTimerIssueObtainedEmpirically = std::chrono::milliseconds(42);
+	std::this_thread::sleep_until(timeStamps.firstAcceptedRequest + oneSecond + delayDueToTimerIssueObtainedEmpirically);
 	ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
 }
 
