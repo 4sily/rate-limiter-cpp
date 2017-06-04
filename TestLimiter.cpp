@@ -188,7 +188,7 @@ int main()
 		TestWithPeakLoadInTheBeginning_SingleIteration(LimiterSpecs::maxRPS);
 		//TestWithPeakLoadInTheBeginning_MultipleIterations(LimiterSpecs::maxRPS, 10);
 		TestWithAdjacentPeaks(LimiterSpecs::maxRPS);
-		//TestWithEvenLoad(LimiterSpecs::maxRPS);
+		TestWithEvenLoad(LimiterSpecs::maxRPS);
 		std::cout << "All Tests passed successfully\n";
 	}
 	catch (AssertionException& e)
