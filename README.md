@@ -50,6 +50,7 @@ Some specific things to do:
 + Use some of the existing testing frameworks in that library/applicaton
   + e.g. Catch/Googletest/Boost.Test/doctest/whatever
 + (Arguable) use [Boost.Circular buffer](http://www.boost.org/doc/libs/1_64_0/doc/html/circular_buffer.html) instead of the self-implemented inside the class HitQueue
++ Improve timer implemenation; preferrably use some 3rd party
 + Abstract away the interface of Limiter via either abstract base class or template trait class
   + Also de-couple the tests from the specific impelemntation of Limiter
 + Add several other implementations, especially for the standard rate limiting algorithms
