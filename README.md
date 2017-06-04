@@ -15,10 +15,23 @@ C++14 compiler is required (e.g. Visual Studio >= 2015).
 
 The basic idea takes into account the following thoughts:
 
-+ to decide if the incoming request should be accepted/rejected we need to *somehow* keep the actual sum of hits/requests, which implies
++ To decide if the incoming request should be accepted/rejected we need to *somehow* keep the actual sum of hits/requests, which implies:
   * incrementing it as the valid request comes
   * decrementing it as the clock ticks
-+ this may lead to the incorrect solution, when we simply calculate the sum per
++ This may lead to the incorrect solution, when we simply calculate the sum per second.
++ But, **what if we just keep sum counts per finer time intervals**?
+
+Hence, here's the plan.
+
++ Let's say we split 1-second interval into N time frames.
++ For each of them we will store the number of requests within that time frame in the corresponding element of the circular buffer.
++ As the time goes, we will be moving our "sliding window" in that buffer, so for each step
+  * we append one time frame with count = 0 to the right
+  * we throw away the left-most element of the buffer
++ Every such step happens per timer tick, which is emitted every 1/N seconds.
+
+Here's the illustration.
+![Alt](i/classes_diagram.png)
 
 # Implementation
 
