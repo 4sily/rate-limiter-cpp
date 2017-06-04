@@ -33,8 +33,8 @@ private:
 		}
 	}
 
-	std::function<void()> onTick_;
-	std::chrono::milliseconds timeBetweenTicks_;
+	const std::function<void()> onTick_;
+	const std::chrono::microseconds timeBetweenTicks_;
 	std::atomic<bool> active_;
 	std::thread workerThread_;
 };
