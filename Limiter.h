@@ -21,11 +21,11 @@ struct HttpResult
 class Limiter
 {
 public:
-    Limiter(int maxRequestCount, int timeSlotsInSecond)
-        : hitQueue_(timeSlotsInSecond)
+    Limiter(int maxRPS, int timeSlotsPS)
+        : hitQueue_(timeSlotsPS)
         // note that callbacks may start coming right after this
-        , tick_(std::chrono::seconds(1) / timeSlotsInSecond, [this] { OnTimeSlotBoundary(); })
-        , maxRequestCount_(maxRequestCount)
+        , tick_(std::chrono::seconds(1) / timeSlotsPS, [this] { OnTimeSlotBoundary(); })
+        , maxRPS_(maxRPS)
     {
     }
 
@@ -36,7 +36,7 @@ public:
 
     HttpResult::Code ValidateRequest()
     {
-        if (hitQueue_.ActiveSum() >= maxRequestCount_)
+        if (hitQueue_.ActiveSum() >= maxRPS_)
         {
             return HttpResult::Code::TooManyRequests;
         }
@@ -44,7 +44,7 @@ public:
         return HttpResult::Code::Ok;
     }
 
-    int maxRPS() const { return maxRequestCount_; }
+    int maxRPS() const { return maxRPS_; }
 
 private:
     void OnTimeSlotBoundary()
@@ -54,5 +54,5 @@ private:
 
     HitQueue hitQueue_;
     Tick tick_;
-    const int maxRequestCount_;
+    const int maxRPS_;
 };
