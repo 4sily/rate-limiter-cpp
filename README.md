@@ -1,5 +1,16 @@
 # Simple rate limiter
 
+This repository contains a C++ implementation of a very primitive rate limiter.
+
+#Dependencies
+
+Only Standard C++ library. No boost or any third parties.
+The code does not depend on any platform specifics, but was developed and tested only with MSVC on Windows.
+The build outcome is a console application that will run the tests for the limiter. Simply clone, compile and run.
+C++14 compiler is required (e.g. Visual Studio >= 2015).
+
+#Algorithm
+
 # What can be improved here
 
 TL;DR: A lot.
