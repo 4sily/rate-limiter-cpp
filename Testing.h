@@ -8,14 +8,14 @@ struct AssertionException : public std::logic_error
 	explicit AssertionException(const char* message) : std::logic_error(message) {}
 };
 
-template <typename A, typename B>
-void AssertEqual(A&& a, B&& b, const char* fileName, int lineNumber)
+template <typename Actual, typename Expected>
+void AssertEqual(Actual&& actual, Expected&& expected, const char* fileName, int lineNumber)
 {
-	assert(a == b);
-	if (a != b)
+	if (expected != actual)
 	{
 		std::stringstream msg;
 		msg << "Equality assumption is broken: file '" << fileName << "'; line " << lineNumber;
+		msg << "; Expected: " << expected << "; Actual: " << actual;
 		throw AssertionException(msg.str().c_str());
 	}
 }

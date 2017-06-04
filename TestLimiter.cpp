@@ -3,28 +3,145 @@
 
 #include <iostream>
 
-auto TestWithPeakLoadInTheBeginning(int maxAllowedRps)
-{
-	const auto startTime = std::chrono::steady_clock::now();
-	int sentRequestsCount = 0;
+static auto CurrentTime() { return std::chrono::high_resolution_clock::now(); }
+static constexpr auto oneSecond = std::chrono::seconds(1);
 
-	Limiter limiter(maxAllowedRps, 10000);
-	for (; sentRequestsCount < maxAllowedRps; ++sentRequestsCount)
+std::ostream& operator<<(std::ostream& os, HttpResult::Code code)
+{
+	const auto str =
+		code == HttpResult::Code::Ok ? "Ok (200)" :
+		code == HttpResult::Code::TooManyRequests ? "Too many requests (429)" :
+		"Unknown code";
+	os << str;
+	return os;
+}
+
+template <typename Clock, typename Duration>
+std::string millisecondsSinceStart(std::chrono::time_point<Clock, Duration> timepoint)
+{
+	const static auto start = timepoint.time_since_epoch().count();
+	return std::to_string((timepoint.time_since_epoch().count() - start) / 1'000'000);
+}
+
+static auto TestAllRequestsBelowMaxAreAccepted(int maxAllowedRps)
+{
+	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
+	const auto startTime = std::chrono::steady_clock::now();
+	for (int i = 0; i < maxAllowedRps; ++i)
+		if (CurrentTime() < startTime + oneSecond)
+			ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
+}
+
+static auto TestAllRequestsAboveMaxAreDeclined(int maxAllowedRps)
+{
+	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
+	const auto startTime = std::chrono::steady_clock::now();
+	for (int i = 0; i < maxAllowedRps; ++i)
+		if (CurrentTime() < startTime + oneSecond)
+			limiter.ValidateRequest();
+
+	while (CurrentTime() < startTime + oneSecond)
+		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
+}
+
+static auto TestWithPeakLoadInTheBeginning(int maxAllowedRps)
+{
+	const auto startTime = CurrentTime();
+
+	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
+
+	// Accepting the requests until we hit the limit.
+	const auto firstAcceptedRequest = CurrentTime();
+	for (int i = 0; i < maxAllowedRps; ++i)
 	{
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
 	}
-	auto expectedEndResult = std::chrono::steady_clock::now() < startTime + std::chrono::milliseconds(500)
-		? HttpResult::Code::Ok
-		: HttpResult::Code::TooManyRequests;
 
-	while (std::chrono::steady_clock::now() < startTime + std::chrono::seconds(1))
+	// Not accepting more requests within current second.
+	while (CurrentTime() < startTime + oneSecond)
 	{
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
 	}
-	ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
+
+	// Still not accepting requests if less than one second has elapsed after the first request.
+	if (CurrentTime() < firstAcceptedRequest + oneSecond)
+		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
+
+	std::this_thread::sleep_until(firstAcceptedRequest + std::chrono::milliseconds(900));
+	if (CurrentTime() < firstAcceptedRequest + oneSecond)
+		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
+
+	std::this_thread::sleep_until(firstAcceptedRequest + oneSecond + std::chrono::milliseconds(42));
+	ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
+}
+
+static auto TestWithEvenLoad(int maxAllowedRps)
+{
+	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
+	const auto intervalBetweenRequests = oneSecond / (2 * maxAllowedRps);
+
+	for (int iterations = 0; iterations < 5; ++iterations)
+	{
+		int requestsSent = 0;
+		const auto startTime = CurrentTime();
+
+		while (requestsSent < maxAllowedRps &&
+			   CurrentTime() < startTime + oneSecond)
+		{
+			++requestsSent;
+			const auto result = limiter.ValidateRequest();
+			if (result != HttpResult::Code::Ok)
+				std::cout << "iterations = " << iterations << "; requestsSent = " << requestsSent << '\n';
+
+			ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
+			std::this_thread::sleep_for(intervalBetweenRequests);
+		}
+		const auto lastValidRequestTime = CurrentTime();
+
+		while (CurrentTime() < startTime + oneSecond)
+		{
+			ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
+			std::this_thread::sleep_for(intervalBetweenRequests);
+		}
+
+		std::this_thread::sleep_until(lastValidRequestTime + oneSecond);
+		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
+	}
+}
+
+static auto TestWithAdjacentPeaks(int maxAllowedRps)
+{
+	const auto startTime = CurrentTime();
+
+	Limiter limiter(maxAllowedRps, 100, std::chrono::milliseconds(10));
+
+	std::this_thread::sleep_until(startTime + std::chrono::milliseconds(900));
+	int requestsSent = 0;
+	while (requestsSent < maxAllowedRps * 0.8)
+	{
+		requestsSent++;
+		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
+	}
 
 	std::this_thread::sleep_until(startTime + std::chrono::milliseconds(1500));
-	ASSERT_EQUAL(limiter.ValidateRequest(), expectedEndResult);
+	while (requestsSent < maxAllowedRps)
+	{
+		requestsSent++;
+		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
+	}
+
+	std::cout << "requestsSent == " << requestsSent << '\n';
+	while (CurrentTime() < startTime + std::chrono::milliseconds(1900))
+	{
+		requestsSent++;
+		const auto result = limiter.ValidateRequest();
+		if (result != HttpResult::Code::TooManyRequests)
+			std::cout << "requestsSent == " << requestsSent << '\n';
+		ASSERT_EQUAL(result, HttpResult::Code::TooManyRequests);
+	}
+
+	std::this_thread::sleep_until(startTime + std::chrono::milliseconds(2000));
+	ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
 }
 
 namespace LimiterSpecs
@@ -37,7 +154,11 @@ int main()
 {
 	try
 	{
-		TestWithPeakLoadInTheBeginning(LimiterSpecs::maxRPS);
+		//TestAllRequestsBelowMaxAreAccepted(LimiterSpecs::maxRPS);
+		//TestAllRequestsAboveMaxAreDeclined(LimiterSpecs::maxRPS);
+		//TestWithPeakLoadInTheBeginning(LimiterSpecs::maxRPS);
+		//TestWithAdjacentPeaks(LimiterSpecs::maxRPS);
+		TestWithEvenLoad(LimiterSpecs::maxRPS);
 		std::cout << "All Tests passed successfully\n";
 	}
 	catch (AssertionException& e)
