@@ -41,10 +41,9 @@ public:
 	void NextTimeSlot()
 	{
 		std::lock_guard<std::mutex> l(mutex_);
-		windowEnd_ = NextIndex(windowEnd_);
-		activeHitsSum_ -= hitsPerTimeSlot_.at(windowBegin_);
-		windowBegin_ = NextIndex(windowBegin_);
 
+		activeHitsSum_ -= hitsPerTimeSlot_.at(windowBegin_);
+		MoveNext();
 
 		CheckContract();
 	}
@@ -98,6 +97,14 @@ private:
 	}
 
 	int movedCount = 0;
+
+	void MoveNext()
+	{
+		movedCount++;
+		windowBegin_ = NextIndex(windowBegin_);
+		windowEnd_ = NextIndex(windowEnd_);
+		hitsPerTimeSlot_.at(windowEnd_) = 0;
+	}
 
 	int NextIndex(int currentIndex) const
 	{
