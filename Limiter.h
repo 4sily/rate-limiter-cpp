@@ -21,10 +21,10 @@ struct HttpResult
 class Limiter
 {
 public:
-    Limiter(int maxRPS, int timeSlotsPS)
-        : hitQueue_(timeSlotsPS)
+    Limiter(int maxRPS, int timeFramesPS)
+        : hitQueue_(timeFramesPS)
         // note that callbacks may start coming right after this
-        , tick_(std::chrono::seconds(1) / timeSlotsPS, [this] { OnTimeSlotBoundary(); })
+        , tick_(std::chrono::seconds(1) / timeFramesPS, [this] { OnTimeFrameBoundary(); })
         , maxRPS_(maxRPS)
     {
     }
@@ -47,9 +47,9 @@ public:
     int maxRPS() const { return maxRPS_; }
 
 private:
-    void OnTimeSlotBoundary()
+    void OnTimeFrameBoundary()
     {
-        hitQueue_.NextTimeSlot();
+        hitQueue_.NextTimeFrame();
     }
 
     HitQueue hitQueue_;

@@ -11,19 +11,19 @@ constexpr auto workaround = 0;
 class HitQueue
 {
 public:
-    explicit HitQueue(int numTimeSlots)
-        : hitsPerTimeSlot_(numTimeSlots + workaround)
+    explicit HitQueue(int numTimeFrames)
+        : hitsPerTimeFrame_(numTimeFrames + workaround)
         , activeHitsSum_(0)
         , windowBegin_(0)
-        , windowEnd_(numTimeSlots + workaround - 1)
+        , windowEnd_(numTimeFrames + workaround - 1)
     {
     }
 
-    void NextTimeSlot()
+    void NextTimeFrame()
     {
         std::lock_guard<std::mutex> l(mutex_);
 
-        activeHitsSum_ -= hitsPerTimeSlot_.at(windowBegin_);
+        activeHitsSum_ -= hitsPerTimeFrame_.at(windowBegin_);
         MoveNext();
 
         CONTRACT_EXPECT(sumOfRange(windowBegin_, windowEnd_) == activeHitsSum_);
@@ -32,7 +32,7 @@ public:
     void AddHit()
     {
         std::lock_guard<std::mutex> l(mutex_);
-        hitsPerTimeSlot_.at(windowEnd_)++;
+        hitsPerTimeFrame_.at(windowEnd_)++;
         activeHitsSum_++;
     }
 
@@ -48,13 +48,13 @@ private:
     {
         windowBegin_ = NextIndex(windowBegin_);
         windowEnd_ = NextIndex(windowEnd_);
-        hitsPerTimeSlot_.at(windowEnd_) = 0;
+        hitsPerTimeFrame_.at(windowEnd_) = 0;
     }
 
     int NextIndex(int currentIndex) const
     {
         // circular iteration
-        return currentIndex < static_cast<int>(hitsPerTimeSlot_.size()) - 1
+        return currentIndex < static_cast<int>(hitsPerTimeFrame_.size()) - 1
             ? currentIndex + 1
             : 0;
     }
@@ -62,17 +62,17 @@ private:
     // Sum of range in the circular buffer.
     int sumOfRange(int startIndex, int currentIndex) const
     {
-        const auto b = hitsPerTimeSlot_.begin();
+        const auto b = hitsPerTimeFrame_.begin();
         return startIndex < currentIndex
             ? std::accumulate(b + startIndex,
                               b + currentIndex + 1,
                               0)
             : std::accumulate(b + startIndex,
-                              hitsPerTimeSlot_.end(),
+                              hitsPerTimeFrame_.end(),
                               0) + std::accumulate(b, b + currentIndex + 1, 0);
     }
 
-    std::vector<int> hitsPerTimeSlot_;
+    std::vector<int> hitsPerTimeFrame_;
     mutable std::mutex mutex_;
     int activeHitsSum_;
     int windowBegin_;
