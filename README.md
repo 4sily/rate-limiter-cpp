@@ -2,6 +2,11 @@
 
 # What can be improved here
 
+TL;DR: A lot.
+This is merely a "proof-of-concept" implementation made in a "quick-and-dirty" manner.
+
+Some specific things to do:
+
 + Turn this console application into the static/dynamic library
 + Move tests to the separate library/application
 + Use some of the existing testing frameworks in that library/applicaton
