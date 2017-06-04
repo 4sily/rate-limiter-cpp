@@ -54,7 +54,7 @@ Some specific things to do:
 + Abstract away the interface of Limiter via either abstract base class or template trait class
   + Also de-couple the tests from the specific impelemntation of Limiter
 + Add several other implementations, especially for the standard rate limiting algorithms
-  + [Token bucket](https://en.m.wikipedia.org/wiki/Token_bucket)
-  + [Leaky bucket](https://en.m.wikipedia.org/wiki/Leaky_bucket)
-    + [as a meter](https://en.m.wikipedia.org/wiki/Leaky_bucket#The_Leaky_Bucket_Algorithm_as_a_Meter)
-    + [as a queue](https://en.m.wikipedia.org/wiki/Leaky_bucket#The_Leaky_Bucket_Algorithm_as_a_Queue)
+  + [Token bucket](https://en.wikipedia.org/wiki/Token_bucket)
+  + [Leaky bucket](https://en.wikipedia.org/wiki/Leaky_bucket)
+    + [as a meter](https://en.wikipedia.org/wiki/Leaky_bucket#The_Leaky_Bucket_Algorithm_as_a_Meter)
+    + [as a queue](https://en.wikipedia.org/wiki/Leaky_bucket#The_Leaky_Bucket_Algorithm_as_a_Queue)
