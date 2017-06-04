@@ -12,14 +12,16 @@
 #include <string>
 #include <iomanip>
 
+constexpr auto workaround = 0;
+
 class HitQueue
 {
 public:
 	explicit HitQueue(int numTimeSlots)
-		: hitsPerTimeSlot_(numTimeSlots)
+		: hitsPerTimeSlot_(numTimeSlots + workaround)
 		, activeHitsSum_(0)
 		, windowBegin_(0)
-		, windowEnd_(numTimeSlots - 1)
+		, windowEnd_(numTimeSlots + workaround - 1)
 		, log_(logFileName().c_str())
 		, detailedLog_((logFileName() + "detailed").c_str())
 	{
