@@ -11,7 +11,7 @@ public:
 	Tick(std::chrono::microseconds timeBetweenTicks,
 		 std::function<void()>&& onTick)
 		: timeBetweenTicks_(timeBetweenTicks)
-		, onTick_(onTick)
+		, onTick_(std::move(onTick))
 		, active_(true)
 		, workerThread_([this] { Loop(); })	// note initialization order is very important here; 
 											// thread should start last
