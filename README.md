@@ -11,7 +11,18 @@ The code does not depend on any platform specifics, but was developed and tested
 The build outcome is a console application that will run the tests for the limiter. Simply clone, compile and run.
 C++14 compiler is required (e.g. Visual Studio >= 2015).
 
-#Algorithm
+# Algorithm
+
+The basic idea takes into account the following thoughts:
+
++ to decide if the incoming request should be accepted/rejected we need to *somehow* keep the actual sum of hits/requests, which implies
+  * incrementing it as the valid request comes
+  * decrementing it as the clock ticks
++ this may lead to the incorrect solution, when we simply calculate the sum per
+
+# Implementation
+
+![Alt](i/classes_diagram.png)
 
 # What can be improved here
 
