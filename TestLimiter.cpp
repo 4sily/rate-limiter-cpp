@@ -118,8 +118,6 @@ static auto TestWithEvenLoad(int maxAllowedRps)
 		{
 			++requestsSent;
 			const auto result = limiter.ValidateRequest();
-			if (result != HttpResult::Code::Ok)
-				std::cout << "iterations = " << iterations << "; requestsSent = " << requestsSent << '\n';
 
 			ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
 			std::this_thread::sleep_for(intervalBetweenRequests);
@@ -158,14 +156,9 @@ static auto TestWithAdjacentPeaks(int maxAllowedRps)
 		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::Ok);
 	}
 
-	std::cout << "requestsSent == " << requestsSent << '\n';
 	while (CurrentTime() < startTime + std::chrono::milliseconds(1900))
 	{
-		requestsSent++;
-		const auto result = limiter.ValidateRequest();
-		if (result != HttpResult::Code::TooManyRequests)
-			std::cout << "requestsSent == " << requestsSent << '\n';
-		ASSERT_EQUAL(result, HttpResult::Code::TooManyRequests);
+		ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
 	}
 
 	std::this_thread::sleep_until(startTime + std::chrono::milliseconds(2000));
