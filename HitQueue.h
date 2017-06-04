@@ -6,6 +6,12 @@
 #include <numeric>
 #include <vector>
 
+#include <iostream>
+#include <fstream>
+#include <chrono>
+#include <string>
+#include <iomanip>
+
 class HitQueue
 {
 public:
@@ -14,7 +20,23 @@ public:
 		, activeHitsSum_(0)
 		, startSlot_(0)
 		, currentSlot_(numTimeSlots - 1)
-	{}
+		, log_(logFileName().c_str())
+		, detailedLog_((logFileName() + "detailed").c_str())
+	{
+	}
+
+	~HitQueue()
+	{
+		const auto sum = CalculateSum(windowBegin_, windowEnd_);
+		std::cout << "Moved " << movedCount << " times\n"
+		    << "startSlot_ = " << windowBegin_
+			<< ";\n\tcurrentSlot_ = " << windowEnd_
+			<< ";\n\tCalculateSum(startSlot_, currentSlot_) = " << sum
+			<< ";\n\tactiveHitsSum_ = " << activeHitsSum_
+			<< ";\n\thitsPerTimeSlot_.size() = " << hitsPerTimeSlot_.size()
+			<< ";\n\thitsPerTimeSlot_.at(startSlot_) = " << hitsPerTimeSlot_.at(windowBegin_)
+			<< ";\n\tDELTA = " << sum - activeHitsSum_ << '\n';
+	}
 
 	void NextTimeSlot()
 	{
@@ -22,7 +44,35 @@ public:
 		currentSlot_ = NextIndex(currentSlot_);
 		activeHitsSum_ -= hitsPerTimeSlot_.at(startSlot_);
 		startSlot_ = NextIndex(startSlot_);
-		CONTRACT_EXPECT(CalculateSum(startSlot_, currentSlot_) == activeHitsSum_);
+
+		CheckContract();
+	}
+
+	void CheckContract()
+	{
+		const auto sum = CalculateSum(windowBegin_, windowEnd_);
+		if (sum != activeHitsSum_)
+		{
+			log_ << "CHECK FOR SUM FAILED:\n\tstartSlot_ = " << windowBegin_
+				<< ";\n\tcurrentSlot_ = " << windowEnd_
+				<< ";\n\tCalculateSum(startSlot_, currentSlot_) = " << sum
+				<< ";\n\tactiveHitsSum_ = " << activeHitsSum_
+				<< ";\n\thitsPerTimeSlot_.size() = " << hitsPerTimeSlot_.size()
+				<< ";\n\thitsPerTimeSlot_.at(startSlot_) = " << hitsPerTimeSlot_.at(windowBegin_)
+				<< ";\n\tDELTA = " << sum - activeHitsSum_ << '\n';
+			for (int index = windowBegin_; index != windowEnd_; index = NextIndex(index))
+			{
+				detailedLog_
+					<< std::setw(10) << index
+					<< std::setw(30) << "queue[index]=" << hitsPerTimeSlot_.at(index)
+					<< '\n';
+			}
+			detailedLog_
+				<< std::setw(10) << windowEnd_
+				<< std::setw(30) << "queue[index]=" << hitsPerTimeSlot_.at(windowEnd_)
+				<< '\n';
+		}
+		CONTRACT_EXPECT(CalculateSum(windowBegin_, windowEnd_) == activeHitsSum_);
 	}
 
 	void AddHit()
@@ -39,6 +89,15 @@ public:
 	}
 
 private:
+	static std::string logFileName()
+	{
+		return std::string("RateLimiter") +
+			std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())
+			+ ".log";
+	}
+
+	int movedCount = 0;
+
 	int NextIndex(int currentIndex) const
 	{
 		// circular iteration
@@ -64,4 +123,6 @@ private:
 	int activeHitsSum_;
 	int startSlot_;
 	int currentSlot_;
+	std::ofstream log_;
+	std::ofstream detailedLog_;
 };
