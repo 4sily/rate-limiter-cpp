@@ -31,7 +31,7 @@ Hence, here's the plan.
 + Every such step happens per timer tick, which is emitted every 1/N seconds.
 
 Here's the illustration.
-![Alt](i/classes_diagram.png)
+![Alt](i/algo.jpg)
 
 # Implementation
 
