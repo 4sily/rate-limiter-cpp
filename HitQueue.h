@@ -2,7 +2,6 @@
 
 #include "Contract.h"
 
-#include <mutex>
 #include <numeric>
 #include <vector>
 
@@ -21,8 +20,6 @@ public:
 
     void NextTimeFrame()
     {
-        std::lock_guard<std::mutex> l(mutex_);
-
         activeHitsSum_ -= hitsPerTimeFrame_.at(windowBegin_);
         MoveNext();
 
@@ -31,14 +28,12 @@ public:
 
     void AddHit()
     {
-        std::lock_guard<std::mutex> l(mutex_);
         hitsPerTimeFrame_.at(windowEnd_)++;
         activeHitsSum_++;
     }
 
     int ActiveSum() const
     {
-        std::lock_guard<std::mutex> l(mutex_);
         return activeHitsSum_;
     }
 
@@ -73,7 +68,6 @@ private:
     }
 
     std::vector<int> hitsPerTimeFrame_;
-    mutable std::mutex mutex_;
     int activeHitsSum_;
     int windowBegin_;
     int windowEnd_;

@@ -4,6 +4,7 @@
 #include "Tick.h"
 
 #include <chrono>
+#include <mutex>
 
 struct HttpResult
 {
@@ -36,6 +37,7 @@ public:
 
     HttpResult::Code ValidateRequest()
     {
+        std::lock_guard<std::mutex> l(mutex_);
         if (hitQueue_.ActiveSum() >= maxRPS_)
         {
             return HttpResult::Code::TooManyRequests;
@@ -49,9 +51,11 @@ public:
 private:
     void OnTimeFrameBoundary()
     {
+        std::lock_guard<std::mutex> l(mutex_);
         hitQueue_.NextTimeFrame();
     }
 
+    std::mutex mutex_;
     HitQueue hitQueue_;
     Tick tick_;
     const int maxRPS_;
