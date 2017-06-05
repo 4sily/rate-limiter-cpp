@@ -73,7 +73,7 @@ static auto TestWithPeakLoadAtStart(Limiter& limiter)
 
 static auto TestWithPeakLoadAtStart_SingleIteration(int maxAllowedRps)
 {
-    Limiter limiter(maxAllowedRps, 100);
+    Limiter limiter(maxAllowedRps, 1000);
 
     const auto timeStamps = TestWithPeakLoadAtStart(limiter);
 
@@ -133,7 +133,7 @@ static auto TestWithAdjacentPeaks(int maxAllowedRps)
 {
     const auto startTime = CurrentTime();
 
-    Limiter limiter(maxAllowedRps, 100);
+    Limiter limiter(maxAllowedRps, 1000);
 
     std::this_thread::sleep_until(startTime + std::chrono::milliseconds(900));
     int requestsSent = 0;
