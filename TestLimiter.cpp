@@ -60,13 +60,7 @@ static auto TestWithPeakLoadAtStart(Limiter& limiter)
     }
     const auto lastAcceptedRequestTime = CurrentTime();
 
-    // Not accepting more requests within current second.
-    while (CurrentTime() < firstAcceptedRequestTime + oneSecond)
-    {
-        ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
-    }
-
-    // Still not accepting requests if less than one second has elapsed after the first request.
+    // Do not accept requests if less than one second has elapsed after the first request.
     if (CurrentTime() < firstAcceptedRequestTime + oneSecond)
         ASSERT_EQUAL(limiter.ValidateRequest(), HttpResult::Code::TooManyRequests);
 
