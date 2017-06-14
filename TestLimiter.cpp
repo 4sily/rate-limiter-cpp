@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-static auto CurrentTime() { return std::chrono::high_resolution_clock::now(); }
+static auto CurrentTime() { return Clock::now(); }
 static constexpr auto oneSecond = std::chrono::seconds(1);
 
 std::ostream& operator<<(std::ostream& os, HttpResult::Code code)
@@ -46,8 +46,8 @@ static auto TestAllRequestsAboveMaxAreDeclined(int maxAllowedRps)
 
 struct TimeStamps
 {
-    const std::chrono::time_point<std::chrono::high_resolution_clock> firstAcceptedRequest;
-    const std::chrono::time_point<std::chrono::high_resolution_clock> lastAcceptedRequest;
+    const std::chrono::time_point<Clock> firstAcceptedRequest;
+    const std::chrono::time_point<Clock> lastAcceptedRequest;
 };
 
 static auto TestWithPeakLoadAtStart(Limiter& limiter)
