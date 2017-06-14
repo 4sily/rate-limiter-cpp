@@ -5,6 +5,8 @@
 #include <thread>
 #include <atomic>
 
+using Clock = std::chrono::steady_clock;
+
 class Tick
 {
 public:
@@ -24,9 +26,9 @@ private:
     {
         while (active_)
         {
-            for (auto start = std::chrono::steady_clock::now(), now = start;
+            for (auto start = Clock::now(), now = start;
                  now < start + timeBetweenTicks_;
-                 now = std::chrono::high_resolution_clock::now()) { /* Until next tick */
+                 now = Clock::now()) { /* Until next tick */
             }
             onTick_();	// may take significant time!
         }
