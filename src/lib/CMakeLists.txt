@@ -18,6 +18,8 @@ add_library(${project_name}-lib
     STATIC ${src}
 )
 
+add_library(rate_limiter::rate_limiter ALIAS ${project_name}-lib)
+
 target_include_directories(${project_name}-lib
     PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include/public"
     PRIVATE "${CMAKE_CURRENT_LIST_DIR}/include/private"
