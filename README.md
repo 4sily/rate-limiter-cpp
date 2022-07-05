@@ -32,11 +32,11 @@ Hence, here's the plan.
 
 Here's the illustration.
 
-![Alt](i/algo.jpg)
+![Alt](assets/algo.jpg)
 
 # Implementation
 
-![Alt](i/classes_diagram.png)
+![Alt](assets/classes_diagram.png)
 
 # What can be improved here
 
